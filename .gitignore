@@ -1,0 +1,24 @@
+# OSX Finder Cache
+.DS_Store
+**/.DS_Store
+._.DS_Store
+**/._.DS_Store
+
+# idea
+.idea
+
+# Byte-compiled / optimized / DLL files
+__pycache__
+__pycache__/
+.pytest_cache/
+*.py[cod]
+*$py.class
+
+/data/logs/
+/data/accounts.csv
+/data/settings.txt
+/.idea/
+/.venv/
+/venv/
+/__pycache__/
+/data/accounts/

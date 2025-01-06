@@ -1,0 +1,4 @@
+loguru==0.7.0
+2captcha-python==1.5.0
+aiohttp==3.11.11
+aiohttp_socks==0.10.0
