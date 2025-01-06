@@ -59,7 +59,7 @@ cp ./data/settings.example.txt ./data/settings.txt
 
 1. Копируем файл _settings.example.txt_ в файл _settings.txt_
 ```bash
-cp ./data/accounts.example.csv ./data//accounts.csv
+cp ./data/accounts.example.csv ./data/accounts.csv
 ```
 2. Заполняем документ
    1. **Email** - адрес почты для аккаунта
