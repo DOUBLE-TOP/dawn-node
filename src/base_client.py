@@ -57,9 +57,7 @@ class BaseClient(ABC):
                     raise SoftwareException("Cloudflare 502 error")
                 if 'Cannot GET /chromeapi/dawn/v1/' in str(error):
                     raise SoftwareException("Server error.")
-                if response.status == 400:
-                    raise TokenException(f"Token error. {error}")
-                raise SoftwareException(error)
+                raise TokenException(f"Token error. {error}")
 
     async def generate_headers(self, extra_headers: dict = None):
         if 'None' in str(self.account.user_agent):
