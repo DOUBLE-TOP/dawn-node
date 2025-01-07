@@ -16,22 +16,19 @@ class DawnClient(Logger, BaseClient):
         BaseClient.__init__(self, account)
         self.account = account
 
-    async def login(self):
-        try:
-            if 'None' not in str(self.account.token) or 'None' not in str(self.account.app_id):
-                await self.get_points()
-                self.logger_msg(self.account, f"The existing token is not expired.", 'success')
-            else:
-                raise SoftwareException()
-        except SoftwareException:
-            self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
-            if 'None' in str(self.account.app_id):
-                await self.get_app_id()
-            puzzle_id = await self.get_puzzle_id()
-            puzzle_image = await self.get_puzzle_image(puzzle_id)
-            solver = Service2Captcha(self.account)
-            puzzle_answer = solver.solve_captcha(puzzle_image)
-            self.account.token = f"Bearer {await self.get_token(puzzle_id, puzzle_answer)}"
+    async def login(self, force: bool = False):
+        while True:
+            if 'None' in str(self.account.token) or 'None' in str(self.account.app_id) or force:
+                self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
+                if 'None' in str(self.account.app_id):
+                    await self.get_app_id()
+                puzzle_id = await self.get_puzzle_id()
+                puzzle_image = await self.get_puzzle_image(puzzle_id)
+                solver = Service2Captcha(self.account)
+                puzzle_answer = solver.solve_captcha(puzzle_image)
+                self.account.token = f"Bearer {await self.get_token(puzzle_id, puzzle_answer)}"
+            if 'None' not in str(self.account.app_id):
+                break
 
     async def get_token(self, puzzle_id, puzzle_answer) -> str:
         login_url = 'https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2'

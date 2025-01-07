@@ -9,7 +9,7 @@ from aiohttp import ClientSession
 from aiohttp_socks import ProxyConnector
 
 from src.models.account import Account
-from src.models.exceptions import SoftwareException
+from src.models.exceptions import SoftwareException, TokenException
 from src.models.user_agents import USER_AGENTS
 
 
@@ -57,6 +57,8 @@ class BaseClient(ABC):
                     raise SoftwareException("Cloudflare 502 error")
                 if 'Cannot GET /chromeapi/dawn/v1/' in str(error):
                     raise SoftwareException("Server error.")
+                if response.status == 400:
+                    raise TokenException(f"Token error. {error}")
                 raise SoftwareException(error)
 
     async def generate_headers(self, extra_headers: dict = None):

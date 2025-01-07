@@ -3,6 +3,7 @@ import random
 import asyncio
 
 from src.dawn import DawnClient
+from src.models.exceptions import TokenException
 from src.utils.logger import Logger
 
 
@@ -38,10 +39,13 @@ class Runner(Logger):
         await dawn_node.login()
         await update_variables_in_file(self, account, await account.account_to_dict())
         while True:
-            await dawn_node.get_points()
-            await dawn_node.keep_alive()
-            await update_variables_in_file(self, account, await account.account_to_dict())
-            await self.custom_sleep(account)
+            try:
+                await dawn_node.get_points()
+                await dawn_node.keep_alive()
+                await update_variables_in_file(self, account, await account.account_to_dict())
+                await self.custom_sleep(account)
+            except TokenException:
+                await dawn_node.login(force=True)
 
     async def run_accounts(self):
         self.logger_msg(None, "Collect accounts data", 'success')

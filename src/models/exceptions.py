@@ -4,3 +4,7 @@ class CaptchaError(Exception):
 
 class SoftwareException(Exception):
     pass
+
+
+class TokenException(Exception):
+    pass
