@@ -96,9 +96,14 @@ class DawnClient(Logger, BaseClient):
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/userreward/keepalive'
             params = {'appid': self.account.app_id}
             headers = {'authorization': self.account.token}
+            payload = {
+                "username": self.account.email,
+                "extensionid": "fpdkjdnhkakefebpekbdhillbhonfjjp",
+                "numberoftabs": 0,
+                "_v": "1.1.2"}
 
-            await self.make_request(method="POST", url=url, params=params,
-                                    headers=headers, module_name='Get Dawn Points')
+            await self.make_request(method="POST", url=url, params=params, json=payload,
+                                    headers=headers, module_name='Record Keep Alive')
 
             self.logger_msg(self.account, f"Keep alive recorded!", 'success')
         except SoftwareException as e:
