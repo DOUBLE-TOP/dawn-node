@@ -115,7 +115,7 @@ class DawnClient(Logger, BaseClient):
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/appid/getappid'
             params = {'app_v': '1.1.2'}
     
-            response = await self.make_request(method="GET", url=url, params=params, module_name='Get Dawn Points')
+            response = await self.make_request(method="GET", url=url, params=params, module_name='Get App ID')
             app_id = response['data'].get('appid')
             self.account.app_id = app_id
     
@@ -124,6 +124,10 @@ class DawnClient(Logger, BaseClient):
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Application ID  was not received successfully. Error - {e}", 'warning')
+        except Exception as e:
+            self.logger_msg(self.account,
+                            f"Application ID  was not received successfully. Error - {e}", 'warning')
+            self.session.close()
 
     async def get_puzzle_id(self) -> str:
         try:
