@@ -31,23 +31,28 @@ class DawnClient(Logger, BaseClient):
                 break
 
     async def get_token(self, puzzle_id, puzzle_answer) -> str:
-        login_url = 'https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2'
-        login_params = {'appid': self.account.app_id}
-        login_payload = {
-            "username": self.account.email,
-            "password": self.account.password,
-            "logindata":
-                {"_v": {"version": "1.1.2"},
-                 "datetime": str(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')},
-            "puzzle_id": puzzle_id,
-            "ans": puzzle_answer}
+        try:
+            login_url = 'https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2'
+            login_params = {'appid': self.account.app_id}
+            login_payload = {
+                "username": self.account.email,
+                "password": self.account.password,
+                "logindata":
+                    {"_v": {"version": "1.1.2"},
+                     "datetime": str(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')},
+                "puzzle_id": puzzle_id,
+                "ans": puzzle_answer}
 
-        response = await self.make_request(method="POST", url=login_url, params=login_params,
-                                           json=login_payload, module_name='Login')
+            response = await self.make_request(method="POST", url=login_url, params=login_params,
+                                               json=login_payload, module_name='Login')
 
-        self.logger_msg(self.account, f"The user is logged in successfully.", 'success')
+            self.logger_msg(self.account, f"The user is logged in successfully.", 'success')
 
-        return response.get('data').get('token')
+            return response.get('data').get('token')
+        except SoftwareException as e:
+            self.logger_msg(self.account,
+                            f"The user was not  logged in successfully. Error - {e}", 'warning')
+            return ""
 
     async def get_points(self) -> decimal:
         try:
@@ -101,37 +106,54 @@ class DawnClient(Logger, BaseClient):
                             f"Keep alive was not recorded by some reasons. Error - {e}", 'warning')
 
     async def get_app_id(self):
-        url = 'https://www.aeropres.in/chromeapi/dawn/v1/appid/getappid'
-        params = {'app_v': '1.1.2'}
-
-        response = await self.make_request(method="GET", url=url, params=params, module_name='Get Dawn Points')
-        app_id = response['data'].get('appid')
-        self.account.app_id = app_id
-
-        self.logger_msg(self.account, f"Application ID received successfully. ID - {app_id}", 'success')
+        try:
+            url = 'https://www.aeropres.in/chromeapi/dawn/v1/appid/getappid'
+            params = {'app_v': '1.1.2'}
+    
+            response = await self.make_request(method="GET", url=url, params=params, module_name='Get Dawn Points')
+            app_id = response['data'].get('appid')
+            self.account.app_id = app_id
+    
+            self.logger_msg(self.account, 
+                            f"Application ID received successfully. ID - {app_id}", 'success')
+        except SoftwareException as e:
+            self.logger_msg(self.account,
+                            f"Application ID  was not received successfully. Error - {e}", 'warning')
 
     async def get_puzzle_id(self) -> str:
-        url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle'
-        params = {'appid': self.account.app_id}
+        try:
+            url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle'
+            params = {'appid': self.account.app_id}
 
-        response = await self.make_request(method="GET", url=url, params=params, module_name='Get Puzzle ID')
-        puzzle_id = response.get('puzzle_id')
+            response = await self.make_request(method="GET", url=url, params=params, module_name='Get Puzzle ID')
+            puzzle_id = response.get('puzzle_id')
 
-        self.logger_msg(self.account, f"Puzzle ID received successfully. ID - {puzzle_id}", 'success')
+            self.logger_msg(self.account, f"Puzzle ID received successfully. ID - {puzzle_id}", 'success')
 
-        return puzzle_id
+            return puzzle_id
+        except SoftwareException as e:
+            self.logger_msg(self.account,
+                            f"Puzzle ID was not received successfully. Error - {e}", 'warning')
+            return ""
 
     async def get_puzzle_image(self, puzzle_id: str) -> str:
-        url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle-image'
-        params = {'puzzle_id': puzzle_id, 'appid': self.account.app_id}
+        try:
+            url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle-image'
+            params = {'puzzle_id': puzzle_id, 'appid': self.account.app_id}
 
-        response = await self.make_request(method="GET", url=url, params=params, module_name='Get Puzzle Image')
-        img = response.get('imgBase64')
+            response = await self.make_request(method="GET", url=url, params=params, module_name='Get Puzzle Image')
+            img = response.get('imgBase64')
 
-        self.logger_msg(self.account,
-                        f"Puzzle image in base64 format received successfully. Img - {img}", 'success')
+            self.logger_msg(self.account,
+                            f"Puzzle image in base64 format received successfully. Img - {img}",
+                            'success')
 
-        return img
+            return img
+        except SoftwareException as e:
+            self.logger_msg(self.account,
+                            f"Puzzle image in base64 format was not received successfully. Error - {e}",
+                            'warning')
+            return ""
 
     async def get_twitter_points(self):
         try:
