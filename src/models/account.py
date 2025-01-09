@@ -1,3 +1,5 @@
+import re
+
 from src.utils.file_manager import read_account
 
 
@@ -36,4 +38,10 @@ class Account:
 
 
 async def default_dict_to_account(data) -> Account:
-    return Account(email=data.get('Email'), password=data.get('Password'), proxy=data.get('Proxy'))
+    def beautify_string(data_string):
+        data_string = data_string.strip()
+        data_string = re.sub('\\s+', ' ', data_string)
+        return data_string
+    return Account(email=beautify_string(data.get('Email')),
+                   password=beautify_string(data.get('Password')),
+                   proxy=beautify_string(data.get('Proxy')))
