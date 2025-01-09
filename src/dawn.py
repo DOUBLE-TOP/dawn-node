@@ -21,13 +21,14 @@ class DawnClient(Logger, BaseClient):
             if 'None' in str(self.account.token) or 'None' in str(self.account.app_id) or force:
                 self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
                 if 'None' in str(self.account.app_id):
-                    await self.get_app_id()
+                    if 'None' in await self.get_app_id():
+                        continue
                 puzzle_id = await self.get_puzzle_id()
                 puzzle_image = await self.get_puzzle_image(puzzle_id)
                 solver = Service2Captcha(self.account)
                 puzzle_answer = solver.solve_captcha(puzzle_image)
                 self.account.token = f"Bearer {await self.get_token(puzzle_id, puzzle_answer)}"
-            if 'None' not in str(self.account.app_id):
+            if 'None' not in str(self.account.app_id) and 'None' in str(self.account.token):
                 break
 
     async def get_token(self, puzzle_id, puzzle_answer) -> str:
@@ -121,6 +122,7 @@ class DawnClient(Logger, BaseClient):
     
             self.logger_msg(self.account, 
                             f"Application ID received successfully. ID - {app_id}", 'success')
+            return app_id
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Application ID  was not received successfully. Error - {e}", 'warning')
