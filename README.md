@@ -57,7 +57,7 @@ cp ./data/settings.example.txt ./data/settings.txt
 
 ### 6. Добавление аккаунтов Dawn. 
 
-1. Копируем файл _settings.example.txt_ в файл _settings.txt_
+1. Копируем файл _accounts.example.csv_ в файл _accounts.csv_
 ```bash
 cp ./data/accounts.example.csv ./data/accounts.csv
 ```

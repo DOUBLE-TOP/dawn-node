@@ -126,8 +126,9 @@ class DawnClient(Logger, BaseClient):
                             f"Application ID  was not received successfully. Error - {e}", 'warning')
         except Exception as e:
             self.logger_msg(self.account,
-                            f"Application ID  was not received successfully. Error - {e}", 'warning')
-            self.session.close()
+                            f"Application ID  was not received successfully. Error - {e}", 'error')
+            await self.session.close()
+            exit(1)
 
     async def get_puzzle_id(self) -> str:
         try:
