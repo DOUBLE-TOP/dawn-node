@@ -32,7 +32,7 @@ class DawnClient(Logger, BaseClient):
                 solver = Service2Captcha(self.account)
                 puzzle_answer = solver.solve_captcha(puzzle_image)
                 self.account.token = f"Bearer {await self.get_token(puzzle_id, puzzle_answer)}"
-                if 'None' not in str(self.account.app_id) and 'None' in str(self.account.token):
+                if 'None' not in str(self.account.app_id) and 'None' not in str(self.account.token):
                     break
 
     async def get_token(self, puzzle_id, puzzle_answer) -> str:
