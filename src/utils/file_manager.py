@@ -58,4 +58,3 @@ async def read_csv(filename: str) -> list[dict[str, str]]:
 
 async def read_accounts() -> list[dict[str, str]]:
     return await read_csv('./data/accounts.csv')
-

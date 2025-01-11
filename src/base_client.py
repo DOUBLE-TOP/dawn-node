@@ -19,7 +19,7 @@ class BaseClient(ABC):
                                               ssl=ssl.create_default_context(), verify_ssl=True))
 
     async def make_request(self, method: str = 'GET', url: str = None, params: dict = None, headers: dict = None,
-                           data: str = None, json: dict = None, module_name: str = 'Request'):
+                           data: str = None, json: dict = None):
 
         while True:
             try:
@@ -68,7 +68,7 @@ class BaseClient(ABC):
         if "Macintosh" in platform:
             sec_ua_platform = "macOS"
             sec_ch_ua = f'"Not_A Brand";v="8", "Chromium";v="{chrome_version}", "Google Chrome";v="{chrome_version}"'
-        
+
         headers = {
             'accept': '*/*',
             'accept-language': 'en-US,en;q=0.9',

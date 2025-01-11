@@ -20,7 +20,7 @@ class DawnClient(Logger, BaseClient):
     async def login(self, force: bool = False):
         try:
             if 'None' in str(self.account.token) or 'None' in str(self.account.app_id) or force:
-                self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
+                self.logger_msg(self.account, "The token is absent or it's expired.", 'success')
                 if 'None' in str(self.account.app_id):
                     await self.get_app_id()
                 puzzle_id = await self.get_puzzle_id()
@@ -32,9 +32,9 @@ class DawnClient(Logger, BaseClient):
                     raise SoftwareException()
         except SoftwareException:
             self.logger_msg(self.account,
-                            f"The user was not logged in successfully. The token is absent.", 'warning')
+                            "The user was not logged in successfully. The token is absent.", 'warning')
 
-    async def get_token(self, puzzle_id, puzzle_answer) -> str:
+    async def get_token(self, puzzle_id, puzzle_answer):
         try:
             login_url = 'https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2'
             login_params = {'appid': self.account.app_id}
@@ -48,13 +48,13 @@ class DawnClient(Logger, BaseClient):
                 "ans": puzzle_answer}
 
             response = await self.make_request(method="POST", url=login_url, params=login_params,
-                                               json=login_payload, module_name='Login')
+                                               json=login_payload)
             self.account.token = f"Bearer {response.get('data').get('token')}"
 
-            self.logger_msg(self.account, f"The user is logged in successfully.", 'success')
+            self.logger_msg(self.account, "The user is logged in successfully.", 'success')
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"The user was not  logged in successfully. Error - {e}", 'warning')
+                            f"The user was not logged in successfully. Error - {e}", 'warning')
 
     async def get_points(self) -> decimal:
         try:
@@ -63,7 +63,7 @@ class DawnClient(Logger, BaseClient):
             headers = {'authorization': self.account.token}
 
             response = await self.make_request(method="GET", url=url, params=params,
-                                               headers=headers, module_name='Get Dawn Points')
+                                               headers=headers)
 
             points = 0.00
 
@@ -92,7 +92,7 @@ class DawnClient(Logger, BaseClient):
             return 0
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"Request for getting points was failed by some reasons. Error - {e}", 'warn')
+                            f"Request for getting points was failed by some reasons. Error - {e}", 'warning')
             return 1
 
     async def keep_alive(self):
@@ -107,9 +107,9 @@ class DawnClient(Logger, BaseClient):
                 "_v": "1.1.2"}
 
             await self.make_request(method="POST", url=url, params=params, json=payload,
-                                    headers=headers, module_name='Record Keep Alive')
+                                    headers=headers)
 
-            self.logger_msg(self.account, f"Keep alive recorded!", 'success')
+            self.logger_msg(self.account, "Keep alive recorded!", 'success')
             return 0
         except SoftwareException as e:
             self.logger_msg(self.account,
@@ -121,7 +121,7 @@ class DawnClient(Logger, BaseClient):
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/appid/getappid'
             params = {'app_v': '1.1.2'}
     
-            response = await self.make_request(method="GET", url=url, params=params, module_name='Get App ID')
+            response = await self.make_request(method="GET", url=url, params=params)
             app_id = response['data'].get('appid')
             if 'None' in str(app_id):
                 raise SoftwareException()
@@ -139,10 +139,11 @@ class DawnClient(Logger, BaseClient):
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle'
             params = {'appid': self.account.app_id}
 
-            response = await self.make_request(method="GET", url=url, params=params, module_name='Get Puzzle ID')
+            response = await self.make_request(method="GET", url=url, params=params)
             puzzle_id = response.get('puzzle_id')
 
-            self.logger_msg(self.account, f"Puzzle ID received successfully. ID - {puzzle_id}", 'success')
+            self.logger_msg(self.account,
+                            f"Puzzle ID received successfully. ID - {puzzle_id}", 'success')
 
             return puzzle_id
         except SoftwareException as e:
@@ -154,7 +155,7 @@ class DawnClient(Logger, BaseClient):
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle-image'
             params = {'puzzle_id': puzzle_id, 'appid': self.account.app_id}
 
-            response = await self.make_request(method="GET", url=url, params=params, module_name='Get Puzzle Image')
+            response = await self.make_request(method="GET", url=url, params=params)
             img = response.get('imgBase64')
 
             self.logger_msg(self.account,
@@ -175,7 +176,7 @@ class DawnClient(Logger, BaseClient):
             payload = {"twitter_x_id": "twitter_x_id"}
 
             await self.make_request(method="POST", url=url, params=params, headers=headers,
-                                    json=payload, module_name='Get twitter points')
+                                    json=payload)
 
             self.logger_msg(self.account, f"Twitter points requested successfully.", 'success')
         except SoftwareException as e:
@@ -190,7 +191,7 @@ class DawnClient(Logger, BaseClient):
             payload = {"discordid": "discordid"}
 
             await self.make_request(method="POST", url=url, params=params, headers=headers,
-                                    json=payload, module_name='Get discord points')
+                                    json=payload)
 
             self.logger_msg(self.account, f"Discord points requested successfully.", 'success')
         except SoftwareException as e:
@@ -205,7 +206,7 @@ class DawnClient(Logger, BaseClient):
             payload = {"telegramid": "telegramid"}
 
             await self.make_request(method="POST", url=url, params=params, headers=headers,
-                                    json=payload, module_name='Get telegram points')
+                                    json=payload)
 
             self.logger_msg(self.account, "Telegram points requested successfully.", 'success')
         except SoftwareException as e:
