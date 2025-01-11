@@ -6,6 +6,7 @@ from src.base_client import BaseClient
 from src.models.account import Account
 from src.models.exceptions import SoftwareException
 from src.utils.captcha import Service2Captcha
+from src.utils.file_manager import update_variables_in_file
 from src.utils.logger import Logger
 
 
@@ -123,7 +124,7 @@ class DawnClient(Logger, BaseClient):
             response = await self.make_request(method="GET", url=url, params=params, module_name='Get App ID')
             app_id = response['data'].get('appid')
             self.account.app_id = app_id
-    
+            await update_variables_in_file(self, self.account, await self.account.account_to_dict())
             self.logger_msg(self.account, 
                             f"Application ID received successfully. ID - {app_id}", 'success')
         except SoftwareException as e:

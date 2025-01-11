@@ -38,7 +38,7 @@ class Runner(Logger):
         dawn_node = DawnClient(account)
         for i in range(5):
             await dawn_node.login()
-            if 'None' in str(account.token) and 'None' in str(account.app_id):
+            if 'None' not in str(account.token) and 'None' not in str(account.app_id):
                 self.logger_msg(account,
                                 f"Login was unsuccessful. Retry #{i} after 30 seconds.", 'warning')
                 await self.custom_sleep(account, 30)
@@ -66,7 +66,6 @@ class Runner(Logger):
                     continue
             await update_variables_in_file(self, account, await account.account_to_dict())
             await self.custom_sleep(account)
-
 
     async def run_accounts(self):
         self.logger_msg(None, "Collect accounts data", 'success')
