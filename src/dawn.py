@@ -28,11 +28,12 @@ class DawnClient(Logger, BaseClient):
                 solver = Service2Captcha(self.account)
                 puzzle_answer = solver.solve_captcha(puzzle_image)
                 await self.get_token(puzzle_id, puzzle_answer)
-                if "None" in self.account.token:
+                if "None" in str(self.account.token):
                     raise SoftwareException()
-        except SoftwareException:
+        except SoftwareException as e:
             self.logger_msg(self.account,
-                            "The user was not logged in successfully. The token is absent.", 'warning')
+                            f"The user was not logged in successfully. The token is absent. {e}",
+                            'warning')
 
     async def get_token(self, puzzle_id, puzzle_answer):
         try:

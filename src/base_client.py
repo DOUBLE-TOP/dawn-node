@@ -22,18 +22,20 @@ class BaseClient(ABC):
 
     async def make_request(self, method: str = 'GET', url: str = None, params: dict = None, headers: dict = None,
                            data: str = None, json: dict = None):
-
         while True:
+            response_text = ""
             try:
                 request_headers = await self.generate_headers(headers)
                 async with self.session.request(
                         method=method, url=url, headers=request_headers,
                         data=data, params=params, json=json) as response:
+                    response_text = str(await response.text())
                     if response.status in [200, 201]:
                         data = await response.json()
                         return data
+                    else:
+                        raise Exception()
             except Exception as error:
-                response_text = str(await response.text())
                 if response_text:
                     message = f"Response - {response_text}. Error - {error}."
                 else:
