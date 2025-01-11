@@ -39,7 +39,7 @@ class BaseClient(ABC):
                 if response_text:
                     message = f"Response - {response_text}. Error - {error}."
                 else:
-                    message = "Error - {error}."
+                    message = f"Error - {error}."
                 raise SoftwareException(f"Details: {message}")
 
     async def generate_headers(self, extra_headers: dict = None):
