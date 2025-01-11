@@ -56,12 +56,12 @@ class Service2Captcha(Logger):
                     return result['request']
 
                 if result['request'] == 'CAPCHA_NOT_READY':
-                    self.logger_msg(self.account, f"The answer is not ready.", 'success')
+                    self.logger_msg(self.account, f"The answer is not ready.", 'warning')
                     time.sleep(5)
                 else:
                     self.logger_msg(self.account,
-                                    f"Some error occurs. Error - {result['request']}", 'error')
-                    return f"Error: {result['request']}"
+                                    f"Some error occurs. Error - {result}", 'error')
+                    raise Exception(f"{result['request']}")
 
         except Exception as e:
-            raise CaptchaError(f"Error 2captcha: {str(e)}")
+            raise CaptchaError(f"Error 2captcha: {str(e)}.")

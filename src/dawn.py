@@ -18,22 +18,14 @@ class DawnClient(Logger, BaseClient):
 
     async def login(self, force: bool = False):
         if 'None' in str(self.account.token) or 'None' in str(self.account.app_id) or force:
-            while True:
-                self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
-                if 'None' in str(self.account.app_id):
-                    while True:
-                        await self.get_app_id()
-                        if 'None' in str(self.account.app_id):
-                            continue
-                        else:
-                            break
-                puzzle_id = await self.get_puzzle_id()
-                puzzle_image = await self.get_puzzle_image(puzzle_id)
-                solver = Service2Captcha(self.account)
-                puzzle_answer = solver.solve_captcha(puzzle_image)
-                self.account.token = f"Bearer {await self.get_token(puzzle_id, puzzle_answer)}"
-                if 'None' not in str(self.account.app_id) and 'None' not in str(self.account.token):
-                    break
+            self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
+            if 'None' in str(self.account.app_id):
+                await self.get_app_id()
+            puzzle_id = await self.get_puzzle_id()
+            puzzle_image = await self.get_puzzle_image(puzzle_id)
+            solver = Service2Captcha(self.account)
+            puzzle_answer = solver.solve_captcha(puzzle_image)
+            self.account.token = f"Bearer {await self.get_token(puzzle_id, puzzle_answer)}"
 
     async def get_token(self, puzzle_id, puzzle_answer) -> str:
         try:
@@ -92,9 +84,11 @@ class DawnClient(Logger, BaseClient):
                 await self.get_telegram_points()
 
             self.logger_msg(self.account, f"Current points - {points}", 'success')
+            return 0
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Request for getting points was failed by some reasons. Error - {e}", 'warn')
+            return 1
 
     async def keep_alive(self):
         try:
@@ -111,9 +105,11 @@ class DawnClient(Logger, BaseClient):
                                     headers=headers, module_name='Record Keep Alive')
 
             self.logger_msg(self.account, f"Keep alive recorded!", 'success')
+            return 0
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Keep alive was not recorded by some reasons. Error - {e}", 'warning')
+            return 1
 
     async def get_app_id(self):
         try:
@@ -128,12 +124,7 @@ class DawnClient(Logger, BaseClient):
                             f"Application ID received successfully. ID - {app_id}", 'success')
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"Application ID  was not received successfully. Error - {e}", 'warning')
-        except Exception as e:
-            self.logger_msg(self.account,
-                            f"Application ID  was not received successfully. Error - {e}", 'error')
-            await self.session.close()
-            exit(1)
+                            f"Application ID was not received successfully. {e}", 'warning')
 
     async def get_puzzle_id(self) -> str:
         try:
@@ -148,8 +139,7 @@ class DawnClient(Logger, BaseClient):
             return puzzle_id
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"Puzzle ID was not received successfully. Error - {e}", 'warning')
-            return ""
+                            f"Puzzle ID was not received successfully. {e}", 'warning')
 
     async def get_puzzle_image(self, puzzle_id: str) -> str:
         try:
@@ -160,15 +150,14 @@ class DawnClient(Logger, BaseClient):
             img = response.get('imgBase64')
 
             self.logger_msg(self.account,
-                            f"Puzzle image in base64 format received successfully. Img - {img}",
+                            f"Puzzle image in base64 format received successfully.",
                             'success')
 
             return img
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"Puzzle image in base64 format was not received successfully. Error - {e}",
+                            f"Puzzle image in base64 format was not received successfully. {e}",
                             'warning')
-            return ""
 
     async def get_twitter_points(self):
         try:
@@ -182,7 +171,8 @@ class DawnClient(Logger, BaseClient):
 
             self.logger_msg(self.account, f"Twitter points requested successfully.", 'success')
         except SoftwareException as e:
-            self.logger_msg(self.account, f"Twitter points was not requested successfully. Error - {e}", 'warning')
+            self.logger_msg(self.account,
+                            f"Twitter points was not requested successfully. {e}", 'warning')
 
     async def get_discord_points(self):
         try:
@@ -197,7 +187,7 @@ class DawnClient(Logger, BaseClient):
             self.logger_msg(self.account, f"Discord points requested successfully.", 'success')
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"Discord points was not requested successfully. Error - {e}", 'warning')
+                            f"Discord points was not requested successfully. {e}", 'warning')
 
     async def get_telegram_points(self):
         try:
@@ -212,4 +202,4 @@ class DawnClient(Logger, BaseClient):
             self.logger_msg(self.account, "Telegram points requested successfully.", 'success')
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"Telegram points was not requested successfully. Error - {e}", 'warning')
+                            f"Telegram points was not requested successfully. {e}", 'warning')

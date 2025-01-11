@@ -3,7 +3,7 @@ import random
 import asyncio
 
 from src.dawn import DawnClient
-from src.models.exceptions import TokenException
+from src.models.exceptions import SoftwareException
 from src.utils.logger import Logger
 
 
@@ -36,16 +36,34 @@ class Runner(Logger):
         self.logger_msg(account, f"Account details - {await account.account_to_dict()}", 'success')
 
         dawn_node = DawnClient(account)
-        await dawn_node.login()
+        for _ in range(5):
+            await dawn_node.login()
+            if 'None' not in str(account.token) and 'None' not in str(account.app_id):
+                break
+        if 'None' in str(account.token) or 'None' in str(account.app_id):
+            self.logger_msg(account,
+                            "Unfortunately we can't get token for this user. "
+                            "Please restart script to try one more time.", 'error')
+            await dawn_node.session.close()
+            return
+
         await update_variables_in_file(self, account, await account.account_to_dict())
+        failed_requests = 0
         while True:
-            try:
-                await dawn_node.get_points()
-                await dawn_node.keep_alive()
-                await update_variables_in_file(self, account, await account.account_to_dict())
-                await self.custom_sleep(account)
-            except TokenException:
-                await dawn_node.login(force=True)
+            new_failures = 0
+            new_failures += await dawn_node.get_points()
+            new_failures += await dawn_node.keep_alive()
+            if new_failures == 2:
+                failed_requests += 2
+                if failed_requests > 5:
+                    await dawn_node.login(force=True)
+                    failed_requests = 0
+                    continue
+                else:
+                    continue
+            await update_variables_in_file(self, account, await account.account_to_dict())
+            await self.custom_sleep(account)
+
 
     async def run_accounts(self):
         self.logger_msg(None, "Collect accounts data", 'success')

@@ -1,15 +1,13 @@
-import asyncio
 import re
 import ssl
 from abc import ABC
 from random import randint
 
-import aiohttp
 from aiohttp import ClientSession
 from aiohttp_socks import ProxyConnector
 
 from src.models.account import Account
-from src.models.exceptions import SoftwareException, TokenException
+from src.models.exceptions import SoftwareException
 from src.models.user_agents import USER_AGENTS
 
 
@@ -23,8 +21,6 @@ class BaseClient(ABC):
     async def make_request(self, method: str = 'GET', url: str = None, params: dict = None, headers: dict = None,
                            data: str = None, json: dict = None, module_name: str = 'Request'):
 
-        total_time = 0
-        timeout = 360
         while True:
             try:
                 request_headers = await self.generate_headers(headers)
@@ -33,31 +29,14 @@ class BaseClient(ABC):
                         data=data, params=params, json=json) as response:
                     if response.status in [200, 201]:
                         data = await response.json()
-                        if isinstance(data, dict):
-                            success = data.get('success') or True
-                        elif isinstance(data, list) and isinstance(data[0], dict):
-                            success = data[0].get('success') or True
-
-                        if success:
-                            return data
-                        else:
-                            raise SoftwareException(
-                                f"Bad request to {self.__class__.__name__}({module_name}) API: {data['message']}")
-
-                    raise SoftwareException(
-                        f"Bad request to {self.__class__.__name__}({module_name}) API: {await response.text()}")
-            except aiohttp.client_exceptions.ServerDisconnectedError as error:
-                total_time += 15
-                await asyncio.sleep(15)
-                if total_time > timeout:
-                    raise SoftwareException(error)
-                continue
+                        return data
             except Exception as error:
-                if 'Error code 502' in str(error):
-                    raise SoftwareException("Cloudflare 502 error")
-                if 'Cannot GET /chromeapi/dawn/v1/' in str(error):
-                    raise SoftwareException("Server error.")
-                raise TokenException(f"Token error. {error}")
+                response_text = str(await response.text())
+                if response_text:
+                    message = f"Response - {response_text}. Error - {error}."
+                else:
+                    message = "Error - {error}."
+                raise SoftwareException(f"Details: {message}")
 
     async def generate_headers(self, extra_headers: dict = None):
         if 'None' in str(self.account.user_agent):
