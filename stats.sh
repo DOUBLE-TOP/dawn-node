@@ -19,5 +19,5 @@ for file in "$DIR"/*; do
     fi
 done
 
-# Use column to format the output
-echo -e "$output" | column -t -s $'\t'
+# Use column to format the output and sort by Total_Earnings
+echo -e "$output" | sort -k2,2n | column -t -s $'\t'
