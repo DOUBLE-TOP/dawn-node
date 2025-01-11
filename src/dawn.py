@@ -48,10 +48,9 @@ class DawnClient(Logger, BaseClient):
 
             response = await self.make_request(method="POST", url=login_url, params=login_params,
                                                json=login_payload, module_name='Login')
+            self.account.token = f"Bearer {response.get('data').get('token')}"
 
             self.logger_msg(self.account, f"The user is logged in successfully.", 'success')
-
-            self.account.token = f"Bearer {response.get('data').get('token')}"
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"The user was not  logged in successfully. Error - {e}", 'warning')
