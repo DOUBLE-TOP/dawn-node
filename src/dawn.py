@@ -17,15 +17,21 @@ class DawnClient(Logger, BaseClient):
         self.account = account
 
     async def login(self, force: bool = False):
-        if 'None' in str(self.account.token) or 'None' in str(self.account.app_id) or force:
-            self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
-            if 'None' in str(self.account.app_id):
-                await self.get_app_id()
-            puzzle_id = await self.get_puzzle_id()
-            puzzle_image = await self.get_puzzle_image(puzzle_id)
-            solver = Service2Captcha(self.account)
-            puzzle_answer = solver.solve_captcha(puzzle_image)
-            self.account.token = f"Bearer {await self.get_token(puzzle_id, puzzle_answer)}"
+        try:
+            if 'None' in str(self.account.token) or 'None' in str(self.account.app_id) or force:
+                self.logger_msg(self.account, f"The token is absent or it's expired.", 'success')
+                if 'None' in str(self.account.app_id):
+                    await self.get_app_id()
+                puzzle_id = await self.get_puzzle_id()
+                puzzle_image = await self.get_puzzle_image(puzzle_id)
+                solver = Service2Captcha(self.account)
+                puzzle_answer = solver.solve_captcha(puzzle_image)
+                await self.get_token(puzzle_id, puzzle_answer)
+                if "None" in self.account.token:
+                    raise SoftwareException()
+        except SoftwareException:
+            self.logger_msg(self.account,
+                            f"The user was not logged in successfully. The token is absent.", 'warning')
 
     async def get_token(self, puzzle_id, puzzle_answer) -> str:
         try:
@@ -45,11 +51,10 @@ class DawnClient(Logger, BaseClient):
 
             self.logger_msg(self.account, f"The user is logged in successfully.", 'success')
 
-            return response.get('data').get('token')
+            self.account.token = f"Bearer {response.get('data').get('token')}"
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"The user was not  logged in successfully. Error - {e}", 'warning')
-            return ""
 
     async def get_points(self) -> decimal:
         try:

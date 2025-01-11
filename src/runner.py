@@ -3,7 +3,6 @@ import random
 import asyncio
 
 from src.dawn import DawnClient
-from src.models.exceptions import SoftwareException
 from src.utils.logger import Logger
 
 
@@ -22,10 +21,11 @@ class Runner(Logger):
 
         return accounts
 
-    async def custom_sleep(self, account: Account):
-        duration = random.randint(300, 310)
-        self.logger_msg(account, f"💤 Sleeping for {duration} seconds", 'success')
-        await asyncio.sleep(duration)
+    async def custom_sleep(self, account: Account, sleep: int = None):
+        if sleep is None:
+            sleep = random.randint(300, 310)
+        self.logger_msg(account, f"💤 Sleeping for {sleep} seconds", 'success')
+        await asyncio.sleep(sleep)
 
     async def run_account(self, accounts: list[Account], index):
         self.logger_msg(accounts[index],
@@ -36,9 +36,12 @@ class Runner(Logger):
         self.logger_msg(account, f"Account details - {await account.account_to_dict()}", 'success')
 
         dawn_node = DawnClient(account)
-        for _ in range(5):
+        for i in range(5):
             await dawn_node.login()
             if 'None' not in str(account.token) and 'None' not in str(account.app_id):
+                self.logger_msg(account,
+                                f"Login was unsuccessful. Retry #{i} after 30 seconds.", 'warning')
+                await self.custom_sleep(account, 30)
                 break
         if 'None' in str(account.token) or 'None' in str(account.app_id):
             self.logger_msg(account,
