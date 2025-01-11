@@ -54,7 +54,8 @@ class DawnClient(Logger, BaseClient):
             self.logger_msg(self.account, "The user is logged in successfully.", 'success')
         except SoftwareException as e:
             self.logger_msg(self.account,
-                            f"The user was not logged in successfully. Error - {e}", 'warning')
+                            "The user was not logged in successfully. "
+                            f"Account token - {self.account.token}. Error - {e}", 'warning')
 
     async def get_points(self) -> decimal:
         try:
