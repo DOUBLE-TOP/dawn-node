@@ -3,6 +3,7 @@ import ssl
 from abc import ABC
 from random import randint
 
+import aiohttp
 from aiohttp import ClientSession
 from aiohttp_socks import ProxyConnector
 
@@ -14,9 +15,10 @@ from src.models.user_agents import USER_AGENTS
 class BaseClient(ABC):
     def __init__(self, account: Account):
         self.account = account
-        self.session = ClientSession(
-            connector=ProxyConnector.from_url(f'{account.proxy}',
-                                              ssl=ssl.create_default_context(), verify_ssl=True))
+        self.session = ClientSession(timeout=aiohttp.ClientTimeout(total=120),
+                                     connector=ProxyConnector.from_url(f'{account.proxy}',
+                                                                       ssl=ssl.create_default_context(),
+                                                                       verify_ssl=True))
 
     async def make_request(self, method: str = 'GET', url: str = None, params: dict = None, headers: dict = None,
                            data: str = None, json: dict = None):
