@@ -123,10 +123,13 @@ class DawnClient(Logger, BaseClient):
     
             response = await self.make_request(method="GET", url=url, params=params, module_name='Get App ID')
             app_id = response['data'].get('appid')
-            self.account.app_id = app_id
-            await update_variables_in_file(self, self.account, await self.account.account_to_dict())
-            self.logger_msg(self.account, 
-                            f"Application ID received successfully. ID - {app_id}", 'success')
+            if 'None' in str(app_id):
+                raise SoftwareException()
+            else:
+                self.account.app_id = app_id
+                await update_variables_in_file(self, self.account, await self.account.account_to_dict())
+                self.logger_msg(self.account,
+                                f"Application ID received successfully. ID - {app_id}", 'success')
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Application ID was not received successfully. {e}", 'warning')

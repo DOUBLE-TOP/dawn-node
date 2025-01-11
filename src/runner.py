@@ -31,27 +31,7 @@ class Runner(Logger):
         self.logger_msg(accounts[index],
                         f"Task for account {accounts[index].email} was started.", 'success')
         account = copy.deepcopy(accounts[index])
-        await account.get_detailed_dict_for_account()
-        await update_variables_in_file(self, account, await account.account_to_dict())
-        self.logger_msg(account, f"Account details - {await account.account_to_dict()}", 'success')
-
         dawn_node = DawnClient(account)
-        for i in range(5):
-            await dawn_node.login()
-            if 'None' in str(account.token) and 'None' in str(account.app_id):
-                self.logger_msg(account,
-                                f"Login was unsuccessful. Retry #{i} after 30 seconds.", 'warning')
-                await self.custom_sleep(account, 30)
-            else:
-                break
-        if 'None' in str(account.token) or 'None' in str(account.app_id):
-            self.logger_msg(account,
-                            "Unfortunately we can't get token for this user. "
-                            "Please restart script to try one more time.", 'error')
-            await dawn_node.session.close()
-            return
-
-        await update_variables_in_file(self, account, await account.account_to_dict())
         failed_requests = 0
         while True:
             new_failures = 0
@@ -72,6 +52,30 @@ class Runner(Logger):
         self.logger_msg(None, "Collect accounts data", 'success')
         accounts = await self.get_accounts()
         tasks = []
+
+        for account in accounts:
+            await update_variables_in_file(self, account, await account.account_to_dict())
+            await account.get_detailed_dict_for_account()
+            self.logger_msg(account, f"Account details - {await account.account_to_dict()}", 'success')
+
+            dawn_node = DawnClient(account)
+            for i in range(5):
+                await dawn_node.login()
+                if 'None' in str(account.token) and 'None' in str(account.app_id):
+                    self.logger_msg(account,
+                                    f"Login was unsuccessful. Retry #{i} after 30 seconds.", 'warning')
+                    await self.custom_sleep(account, 30)
+                else:
+                    break
+            if 'None' in str(account.token) or 'None' in str(account.app_id):
+                self.logger_msg(account,
+                                "Unfortunately we can't get token for this user. "
+                                "Please restart script to try one more time.", 'error')
+                await dawn_node.session.close()
+                return
+
+            await update_variables_in_file(self, account, await account.account_to_dict())
+            await dawn_node.session.close()
 
         self.logger_msg(None, "Create tasks for accounts", 'success')
         for index, account in enumerate(accounts):

@@ -15,11 +15,13 @@ async def update_variables_in_file(logger: Logger, account, updates: dict):
     else:
         existing_data = {}
     updates.update({"Last_Updated": str(datetime.now())})
-    for key in updates.keys():
+    filtered_dict = {key: value for key, value in updates.items() if 'None' not in str(value)}
+
+    for key in filtered_dict.keys():
         if key in existing_data.keys():
             existing_data.pop(key)
 
-    new_data = dict(updates, **existing_data)
+    new_data = dict(filtered_dict, **existing_data)
 
     # Write updated lines back to the file
     with open(file_path, 'w') as account_file:
