@@ -27,6 +27,9 @@ class DawnClient(Logger, BaseClient):
                 puzzle_image = await self.get_puzzle_image(puzzle_id)
                 solver = Service2Captcha(self.account)
                 puzzle_answer = solver.solve_captcha(puzzle_image)
+                self.logger_msg(self.account,
+                                f"Puzzle answer {puzzle_answer}",
+                                'warning')
                 await self.get_token(puzzle_id, puzzle_answer)
                 if "None" in str(self.account.token):
                     raise SoftwareException()
