@@ -58,6 +58,9 @@ class Service2Captcha(Logger):
                 if result['request'] == 'CAPCHA_NOT_READY':
                     self.logger_msg(self.account, f"The answer is not ready.", 'warning')
                     time.sleep(5)
+                elif result['request'] == 'ERROR_KEY_DOES_NOT_EXIST':
+                    self.logger_msg(self.account, f"The answer is not ready.", 'warning')
+                    time.sleep(5)
                 else:
                     self.logger_msg(self.account,
                                     f"Some error occurs. Error - {result}", 'error')
