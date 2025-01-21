@@ -72,7 +72,7 @@ class Runner(Logger):
                                 "Unfortunately we can't get token for this user. "
                                 "Please restart script to try one more time.", 'error')
                 await dawn_node.session.close()
-                return
+                continue
 
             await update_variables_in_file(self, account, await account.account_to_dict())
             await dawn_node.session.close()
