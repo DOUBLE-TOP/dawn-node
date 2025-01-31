@@ -46,7 +46,7 @@ class DawnClient(Logger, BaseClient):
                 "username": self.account.email,
                 "password": self.account.password,
                 "logindata":
-                    {"_v": {"version": "1.1.2"},
+                    {"_v": {"version": "1.1.3"},
                      "datetime": str(datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + 'Z')},
                 "puzzle_id": puzzle_id,
                 "ans": puzzle_answer}
@@ -109,7 +109,7 @@ class DawnClient(Logger, BaseClient):
                 "username": self.account.email,
                 "extensionid": "fpdkjdnhkakefebpekbdhillbhonfjjp",
                 "numberoftabs": 0,
-                "_v": "1.1.2"}
+                "_v": "1.1.3"}
 
             await self.make_request(method="POST", url=url, params=params, json=payload,
                                     headers=headers)
@@ -124,7 +124,7 @@ class DawnClient(Logger, BaseClient):
     async def get_app_id(self):
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/appid/getappid'
-            params = {'app_v': '1.1.2'}
+            params = {'app_v': '1.1.3'}
     
             response = await self.make_request(method="GET", url=url, params=params)
             app_id = response['data'].get('appid')
