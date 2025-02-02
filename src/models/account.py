@@ -17,9 +17,6 @@ class Account:
     async def get_detailed_dict_for_account(self):
         data = await read_account(self.email)
         if len(data) > 0:
-            self.email = data.get("Email") or None
-            self.password = data.get("Password") or None
-            self.proxy = data.get("Proxy") or None
             self.app_id = data.get("App_ID") or None
             self.token = data.get("Token") or None
             self.user_agent = data.get("User_Agent") or None
