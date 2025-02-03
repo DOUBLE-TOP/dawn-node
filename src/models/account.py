@@ -1,5 +1,7 @@
 import re
+from random import randint
 
+from src.models.user_agents import USER_AGENTS
 from src.utils.file_manager import read_account
 
 
@@ -19,8 +21,10 @@ class Account:
         if len(data) > 0:
             self.app_id = data.get("App_ID") or None
             self.token = data.get("Token") or None
-            self.user_agent = data.get("User_Agent") or None
+            self.user_agent = data.get("User_Agent") or USER_AGENTS[randint(0, len(USER_AGENTS) - 1)]
             self.total_earnings = data.get("Total_Earnings") or None
+        else:
+            self.user_agent = USER_AGENTS[randint(0, len(USER_AGENTS) - 1)]
 
     async def account_to_dict(self) -> dict:
         return {

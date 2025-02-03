@@ -1,7 +1,6 @@
 import re
 import ssl
 from abc import ABC
-from random import randint
 
 import aiohttp
 from aiohttp import ClientSession
@@ -9,7 +8,6 @@ from aiohttp_socks import ProxyConnector
 
 from src.models.account import Account
 from src.models.exceptions import SoftwareException
-from src.models.user_agents import USER_AGENTS
 
 
 class BaseClient(ABC):
@@ -43,9 +41,6 @@ class BaseClient(ABC):
                 raise SoftwareException(f"Details: {message}")
 
     async def generate_headers(self, extra_headers: dict = None):
-        if 'None' in str(self.account.user_agent):
-            self.account.user_agent = USER_AGENTS[randint(0, len(USER_AGENTS) - 1)]
-
         ua_pattern = re.compile(
             r'Mozilla/5.0 \(([^)]+)\) AppleWebKit/([\d.]+) \(KHTML, like Gecko\) Chrome/([\d.]+) Safari/([\d.]+)'
         )
