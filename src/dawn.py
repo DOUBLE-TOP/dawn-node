@@ -8,6 +8,7 @@ from src.models.exceptions import SoftwareException
 from src.utils.captcha import Service2Captcha
 from src.utils.file_manager import update_variables_in_file
 from src.utils.logger import Logger
+from src.utils.retry_decorator import retry_on_none
 
 
 class DawnClient(Logger, BaseClient):
@@ -17,6 +18,7 @@ class DawnClient(Logger, BaseClient):
         BaseClient.__init__(self, account)
         self.account = account
 
+    @retry_on_none(retries=5, delay=2)
     async def login(self, force: bool = False):
         try:
             if 'None' in str(self.account.token) or 'None' in str(self.account.app_id) or force:
@@ -27,17 +29,17 @@ class DawnClient(Logger, BaseClient):
                 puzzle_image = await self.get_puzzle_image(puzzle_id)
                 solver = Service2Captcha(self.account)
                 puzzle_answer = solver.solve_captcha(puzzle_image)
-                self.logger_msg(self.account,
-                                f"Puzzle answer {puzzle_answer}",
-                                'warning')
                 await self.get_token(puzzle_id, puzzle_answer)
                 if "None" in str(self.account.token):
                     raise SoftwareException()
+                return True
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"The user was not logged in successfully. The token is absent. {e}",
                             'warning')
+            return None
 
+    @retry_on_none(retries=5, delay=2)
     async def get_token(self, puzzle_id, puzzle_answer):
         try:
             login_url = 'https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2'
@@ -56,11 +58,14 @@ class DawnClient(Logger, BaseClient):
             self.account.token = f"Bearer {response.get('data').get('token')}"
 
             self.logger_msg(self.account, "The user is logged in successfully.", 'success')
+            return True
         except SoftwareException as e:
             self.logger_msg(self.account,
                             "The user was not logged in successfully. "
                             f"Account token - {self.account.token}. Error - {e}", 'warning')
+            return None
 
+    @retry_on_none(retries=5, delay=2)
     async def get_points(self) -> decimal:
         try:
             url = 'https://www.aeropres.in/api/atom/v1/userreferral/getpoint'
@@ -94,12 +99,13 @@ class DawnClient(Logger, BaseClient):
                 await self.get_telegram_points()
 
             self.logger_msg(self.account, f"Current points - {points}", 'success')
-            return 0
+            return True
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Request for getting points was failed by some reasons. Error - {e}", 'warning')
-            return 1
+            return None
 
+    @retry_on_none(retries=5, delay=2)
     async def keep_alive(self):
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/userreward/keepalive'
@@ -115,12 +121,13 @@ class DawnClient(Logger, BaseClient):
                                     headers=headers)
 
             self.logger_msg(self.account, "Keep alive recorded!", 'success')
-            return 0
+            return True
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Keep alive was not recorded by some reasons. Error - {e}", 'warning')
-            return 1
+            return None
 
+    @retry_on_none(retries=5, delay=2)
     async def get_app_id(self):
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/appid/getappid'
@@ -138,8 +145,10 @@ class DawnClient(Logger, BaseClient):
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Application ID was not received successfully. {e}", 'warning')
+            return None
 
-    async def get_puzzle_id(self) -> str:
+    @retry_on_none(retries=5, delay=2)
+    async def get_puzzle_id(self) -> str or None:
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle'
             params = {'appid': self.account.app_id}
@@ -154,8 +163,10 @@ class DawnClient(Logger, BaseClient):
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Puzzle ID was not received successfully. {e}", 'warning')
+            return None
 
-    async def get_puzzle_image(self, puzzle_id: str) -> str:
+    @retry_on_none(retries=5, delay=2)
+    async def get_puzzle_image(self, puzzle_id: str) -> str or None:
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle-image'
             params = {'puzzle_id': puzzle_id, 'appid': self.account.app_id}
@@ -172,7 +183,9 @@ class DawnClient(Logger, BaseClient):
             self.logger_msg(self.account,
                             f"Puzzle image in base64 format was not received successfully. {e}",
                             'warning')
+            return None
 
+    @retry_on_none(retries=5, delay=2)
     async def get_twitter_points(self):
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/profile/update'
@@ -184,10 +197,13 @@ class DawnClient(Logger, BaseClient):
                                     json=payload)
 
             self.logger_msg(self.account, f"Twitter points requested successfully.", 'success')
+            return True
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Twitter points was not requested successfully. {e}", 'warning')
+            return None
 
+    @retry_on_none(retries=5, delay=2)
     async def get_discord_points(self):
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/profile/update'
@@ -199,10 +215,13 @@ class DawnClient(Logger, BaseClient):
                                     json=payload)
 
             self.logger_msg(self.account, f"Discord points requested successfully.", 'success')
+            return True
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Discord points was not requested successfully. {e}", 'warning')
+            return None
 
+    @retry_on_none(retries=5, delay=2)
     async def get_telegram_points(self):
         try:
             url = 'https://www.aeropres.in/chromeapi/dawn/v1/profile/update'
@@ -214,6 +233,8 @@ class DawnClient(Logger, BaseClient):
                                     json=payload)
 
             self.logger_msg(self.account, "Telegram points requested successfully.", 'success')
+            return True
         except SoftwareException as e:
             self.logger_msg(self.account,
                             f"Telegram points was not requested successfully. {e}", 'warning')
+            return None

@@ -7,7 +7,7 @@ from aiohttp import ClientSession
 from aiohttp_socks import ProxyConnector
 
 from src.models.account import Account
-from src.models.exceptions import SoftwareException
+from src.models.exceptions import SoftwareException, TokenException
 
 
 class BaseClient(ABC):
@@ -38,7 +38,10 @@ class BaseClient(ABC):
                     message = f"Response - {response_text}. Error - {error}."
                 else:
                     message = f"Error - {error}."
-                raise SoftwareException(f"Details: {message}")
+                if 'expired' in response_text:
+                    raise TokenException(message)
+                else:
+                    raise SoftwareException(f"Details: {message}")
 
     async def generate_headers(self, extra_headers: dict = None):
         ua_pattern = re.compile(

@@ -3,6 +3,7 @@ import random
 import asyncio
 
 from src.dawn import DawnClient
+from src.models.exceptions import TokenException, SoftwareException
 from src.utils.logger import Logger
 
 
@@ -32,26 +33,23 @@ class Runner(Logger):
                         f"Task for account {accounts[index].email} was started.", 'success')
         account = copy.deepcopy(accounts[index])
         dawn_node = DawnClient(account)
-        failed_requests = 0
         while True:
-            new_failures = 0
-            new_failures += await dawn_node.get_points()
-            new_failures += await dawn_node.keep_alive()
-            if new_failures == 2:
-                failed_requests += 2
-                if failed_requests > 5:
-                    await dawn_node.login(force=True)
-                    failed_requests = 0
-                    continue
-                else:
-                    continue
-            await update_variables_in_file(self, account, await account.account_to_dict())
-            await self.custom_sleep(account)
+            try:
+                await dawn_node.get_points()
+                await dawn_node.keep_alive()
+                await update_variables_in_file(self, account, await account.account_to_dict())
+                await self.custom_sleep(account)
+            except TokenException:
+                await dawn_node.login(force=True)
+            except SoftwareException:
+                continue
 
     async def run_accounts(self):
         self.logger_msg(None, "Collect accounts data", 'success')
         accounts = await self.get_accounts()
         tasks = []
+        workable_accounts = []
+        skipped_accounts = []
 
         for account in accounts:
             await update_variables_in_file(self, account, await account.account_to_dict())
@@ -59,27 +57,28 @@ class Runner(Logger):
             self.logger_msg(account, f"Account details - {await account.account_to_dict()}", 'success')
 
             dawn_node = DawnClient(account)
-            for i in range(5):
-                await dawn_node.login()
-                if 'None' in str(account.token) or 'None' in str(account.app_id):
-                    self.logger_msg(account,
-                                    f"Login was unsuccessful. Retry #{i} after 30 seconds.", 'warning')
-                    await self.custom_sleep(account, 30)
-                else:
-                    break
+            await dawn_node.login()
+
             if 'None' in str(account.token) or 'None' in str(account.app_id):
                 self.logger_msg(account,
                                 "Unfortunately we can't get token for this user. "
                                 "Please restart script to try one more time.", 'error')
                 await dawn_node.session.close()
+                skipped_accounts.append(account)
                 continue
 
             await update_variables_in_file(self, account, await account.account_to_dict())
             await dawn_node.session.close()
+            workable_accounts.append(account)
+
+        if skipped_accounts:
+            self.logger_msg(None, "The list of skipped accounts", 'error')
+            for skipped_account in skipped_accounts:
+                self.logger_msg(None, f"Email: {skipped_account.email}", 'error')
 
         self.logger_msg(None, "Create tasks for accounts", 'success')
-        for index, account in enumerate(accounts):
-            tasks.append(asyncio.create_task(self.run_account(accounts, index)))
+        for index, account in enumerate(workable_accounts):
+            tasks.append(asyncio.create_task(self.run_account(workable_accounts, index)))
 
         self.logger_msg(None, "Execute tasks for accounts", 'success')
         await asyncio.gather(*tasks, return_exceptions=True)
