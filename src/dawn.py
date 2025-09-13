@@ -77,7 +77,7 @@ class DawnClient(Logger, BaseClient):
 
             points = 0.00
 
-            if response['message'] == "success":
+            if response['success']:
                 points = round(response.get('data').get('referralPoint').get('commission') +
                                response.get('data').get('rewardPoint').get('points') +
                                response.get('data').get('rewardPoint').get('registerpoints') +
