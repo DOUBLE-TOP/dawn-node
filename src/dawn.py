@@ -42,7 +42,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_token(self, puzzle_id, puzzle_answer):
         try:
-            login_url = 'https://www.aeropres.in/chromeapi/dawn/v1/user/login/v2'
+            login_url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/user/login/v2'
             login_params = {'appid': self.account.app_id}
             login_payload = {
                 "username": self.account.email,
@@ -68,7 +68,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_points(self) -> decimal:
         try:
-            url = 'https://www.aeropres.in/api/atom/v1/userreferral/getpoint'
+            url = 'https://ext-api.dawninternet.com/api/atom/v1/userreferral/getpoint'
             params = {'appid': self.account.app_id}
             headers = {'authorization': self.account.token}
 
@@ -77,7 +77,7 @@ class DawnClient(Logger, BaseClient):
 
             points = 0.00
 
-            if response['message'] == "success":
+            if response['success']:
                 points = round(response.get('data').get('referralPoint').get('commission') +
                                response.get('data').get('rewardPoint').get('points') +
                                response.get('data').get('rewardPoint').get('registerpoints') +
@@ -108,7 +108,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def keep_alive(self):
         try:
-            url = 'https://www.aeropres.in/chromeapi/dawn/v1/userreward/keepalive'
+            url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/userreward/keepalive'
             params = {'appid': self.account.app_id}
             headers = {'authorization': self.account.token}
             payload = {
@@ -130,7 +130,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_app_id(self):
         try:
-            url = 'https://www.aeropres.in/chromeapi/dawn/v1/appid/getappid'
+            url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/appid/getappid'
             params = {'app_v': '1.1.3'}
     
             response = await self.make_request(method="GET", url=url, params=params)
@@ -150,7 +150,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_puzzle_id(self) -> str or None:
         try:
-            url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle'
+            url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/puzzle/get-puzzle'
             params = {'appid': self.account.app_id}
 
             response = await self.make_request(method="GET", url=url, params=params)
@@ -168,7 +168,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_puzzle_image(self, puzzle_id: str) -> str or None:
         try:
-            url = 'https://www.aeropres.in/chromeapi/dawn/v1/puzzle/get-puzzle-image'
+            url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/puzzle/get-puzzle-image'
             params = {'puzzle_id': puzzle_id, 'appid': self.account.app_id}
 
             response = await self.make_request(method="GET", url=url, params=params)
@@ -188,7 +188,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_twitter_points(self):
         try:
-            url = 'https://www.aeropres.in/chromeapi/dawn/v1/profile/update'
+            url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/profile/update'
             params = {'appid': self.account.app_id}
             headers = {'authorization': self.account.token}
             payload = {"twitter_x_id": "twitter_x_id"}
@@ -206,7 +206,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_discord_points(self):
         try:
-            url = 'https://www.aeropres.in/chromeapi/dawn/v1/profile/update'
+            url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/profile/update'
             params = {'appid': self.account.app_id}
             headers = {'authorization': self.account.token}
             payload = {"discordid": "discordid"}
@@ -224,7 +224,7 @@ class DawnClient(Logger, BaseClient):
     @retry_on_none(retries=5, delay=2)
     async def get_telegram_points(self):
         try:
-            url = 'https://www.aeropres.in/chromeapi/dawn/v1/profile/update'
+            url = 'https://ext-api.dawninternet.com/chromeapi/dawn/v1/profile/update'
             params = {'appid': self.account.app_id}
             headers = {'authorization': self.account.token}
             payload = {"telegramid": "telegramid"}
